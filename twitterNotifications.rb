@@ -4,9 +4,15 @@ require 'twitter'
 require 'omniauth-twitter'
 require 'pry'
 require 'mongo'
+require 'tweetstream'
+require 'json'
 
 
 class TwitterNotifications < Sinatra::Base
+
+  set :views, 'views'
+  enable :sessions
+  use Rack::Session::Cookie
 
   APP_TOKEN   = 'qSXgYnfl9TQHL0rcRw'
   APP_SECRET  = 'zhzEDv12a87RimkvaisEi5IZvqISzEVmf2gDIJQCuw'
@@ -20,9 +26,6 @@ class TwitterNotifications < Sinatra::Base
     provider :twitter, APP_TOKEN, APP_SECRET
   end
 
-  set :views, 'views'
-  enable :sessions
-  use Rack::Session::Cookie
 
   get '/' do
     redirect '/auth/twitter'
@@ -40,16 +43,21 @@ class TwitterNotifications < Sinatra::Base
 
 
   get '/loggedin' do
+    puts "Ja ANDA !!!"
 
-    data = getTweeterInfos
+    #data = getTweeterInfos "glsignal"
     @colleccion = createCollec
     
-    @colleccion.insert(data)
+    #@colleccion.insert(data)
 
-    binding.pry
+    #@escibirMuro = postToTwitter 'hola3'
+
+    #@chupaTweet = stockListenedStream
+    
+    @tracked = stockTrackedStream 'EnHalloweenMeVoyaDisfrazarDe'
+
+    #binding.pry
   end
-
-
 
 
 
@@ -60,18 +68,56 @@ helpers do
                                     :oauth_token_secret => session[:secret]  
   end
 
+  def getTweeterInfos user_id
+    @info_user = client.user(user_id).to_hash
+  end
+
+  def postToTwitter message
+    @tweetear = client.update(message)
+  end
+
   def bdd
     @instance ||= Mongo::Connection.new('localhost', 27017).db('twitter_test')
   end
 
   def createCollec
-    @db = bdd['tweetcol']
+    @db ||= bdd['tweetcol']
     #@db = bdd.collection('tweetcol')
   end
 
-  def getTweeterInfos
-    @info_user = client.user("glsignal").to_hash
+  def clientStream
+    TweetStream.configure do |config|
+      config.consumer_key       = APP_TOKEN
+      config.consumer_secret    = APP_SECRET
+      config.oauth_token        = session[:token]
+      config.oauth_token_secret = session[:secret]
+      config.auth_method        = :oauth
+    end
+      @clientStream ||= TweetStream::Client.new
   end
+
+  def recuperarUserStream
+    @recup ||= clientStream.userstream
+  end
+
+  def trackKeywords keyword
+    @tracking = clientStream.track(keyword)
+  end
+
+  def stockListenedStream
+    @stream = clientStream
+    @stream.userstream do |tweets| 
+      @colleccion.insert(tweets.to_hash) 
+    end
+  end  
+
+  def stockTrackedStream hashTag
+    @stream = clientStream
+    @stream.track(hashTag) do |tweets| 
+      @colleccion.insert(tweets.to_hash) 
+    end
+  end
+
 
 
 end
