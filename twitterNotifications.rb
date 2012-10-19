@@ -38,9 +38,14 @@ class TwitterNotifications < Sinatra::Base
     redirect '/loggedin'
   end
 
+
   get '/loggedin' do
-    @info_user = client.user("secuip").to_hash
-    @colleccion = collec
+
+    data = getTweeterInfos
+    @colleccion = createCollec
+    
+    @colleccion.insert(data)
+
     binding.pry
   end
 
@@ -59,9 +64,15 @@ helpers do
     @instance ||= Mongo::Connection.new('localhost', 27017).db('twitter_test')
   end
 
-  def collec
+  def createCollec
     @db = bdd['tweetcol']
+    #@db = bdd.collection('tweetcol')
   end
+
+  def getTweeterInfos
+    @info_user = client.user("glsignal").to_hash
+  end
+
 
 end
 
