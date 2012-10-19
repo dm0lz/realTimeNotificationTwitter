@@ -1,11 +1,14 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    bson (1.7.0)
     coderay (1.0.8)
     faraday (0.8.4)
       multipart-post (~> 1.1)
     hashie (1.2.0)
     method_source (0.8.1)
+    mongo (1.7.0)
+      bson (~> 1.7.0)
     multi_json (1.3.6)
     multipart-post (1.1.5)
     oauth (0.4.7)
@@ -42,6 +45,7 @@ PLATFORMS
 
 DEPENDENCIES
   bundler
+  mongo
   omniauth-twitter
   pry
   sinatra
