@@ -26,44 +26,37 @@ class TwitterNotifications < Sinatra::Base
     provider :twitter, APP_TOKEN, APP_SECRET
   end
 
-
   get '/' do
     redirect '/auth/twitter'
   end
-
 
   get '/auth/twitter/callback' do 
     session[:token] = env['omniauth.auth']['credentials'].token
     session[:secret] = env['omniauth.auth']['credentials'].secret
     #MultiJson.encode(request.env)
-
     #binding.pry
     redirect '/loggedin'
   end
-
 
   get '/loggedin' do
 
     puts "Ja ANDA !!!"
     @colleccion = createCollec
     @stream = clientStream
+    @client = client
+
     #data = getTweeterInfos "glsignal"
     
     #@colleccion.insert(data)
 
     #@escibirMuro = postToTwitter 'hola3'
 
-    #@chupaTweet = stockListenedStream
+    #@chupaTweet = stockUserStream
     
     #@tracked = stockTrackedStream 'EnHalloweenMeVoyaDisfrazarDe'
 
-    #@follow = followAlguien "aramosf"
-
     binding.pry
-
   end
-
-
 
 helpers do
   
@@ -92,6 +85,8 @@ helpers do
     #@db = bdd.collection('tweetcol')
   end
 
+#######   Tweeter Gem   #############
+
   def getTweeterInfos user_id
     @info_user = client.user(user_id).to_hash
   end
@@ -100,8 +95,13 @@ helpers do
     @tweetear = client.update(message)
   end
 
+  def followOnTwitter user_id
+    @follow = client.follow(user_id)
+  end
 
-  def stockListenedStream
+########   Tweetstream Gem   ###########
+
+  def stockUserStream
     @stream = clientStream
     @stream.userstream do |tweets| 
       @colleccion.insert(tweets.to_hash) 
@@ -115,7 +115,7 @@ helpers do
     end
   end
 
-  def followStreamOfPeople user_id
+  def stockStreamOfPeople user_id
     @stream = clientStream
     @stream.follow(user_id) do |follow|
       @colleccion.insert(follow.to_hash)
@@ -123,7 +123,6 @@ helpers do
   end
 
 end
-
 
 
 end
