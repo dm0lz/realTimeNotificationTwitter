@@ -59,6 +59,8 @@ class TwitterNotifications < Sinatra::Base
   end
 
 helpers do
+
+ #########   Gems Setup   ############## 
   
   def client
     @client ||= Twitter::Client.new  :oauth_token => session[:token],
@@ -76,6 +78,8 @@ helpers do
       @clientStream ||= TweetStream::Client.new
   end
 
+ ########   Database Setup   ########## 
+
   def bdd
     @instance ||= Mongo::Connection.new('localhost', 27017).db('twitter_test')
   end
@@ -85,7 +89,7 @@ helpers do
     #@db = bdd.collection('tweetcol')
   end
 
-#######   Tweeter Gem   #############
+#######   tweeter Gem   #############
 
   def getTweeterInfos user_id
     @info_user = client.user(user_id).to_hash
@@ -99,7 +103,7 @@ helpers do
     @follow = client.follow(user_id)
   end
 
-########   Tweetstream Gem   ###########
+########   tweetstream Gem   ###########
 
   def stockUserStream
     @stream = clientStream
