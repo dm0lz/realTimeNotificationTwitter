@@ -43,10 +43,11 @@ class TwitterNotifications < Sinatra::Base
 
 
   get '/loggedin' do
-    puts "Ja ANDA !!!"
 
-    #data = getTweeterInfos "glsignal"
+    puts "Ja ANDA !!!"
     @colleccion = createCollec
+    @stream = clientStream
+    #data = getTweeterInfos "glsignal"
     
     #@colleccion.insert(data)
 
@@ -54,9 +55,12 @@ class TwitterNotifications < Sinatra::Base
 
     #@chupaTweet = stockListenedStream
     
-    @tracked = stockTrackedStream 'EnHalloweenMeVoyaDisfrazarDe'
+    #@tracked = stockTrackedStream 'EnHalloweenMeVoyaDisfrazarDe'
 
-    #binding.pry
+    #@follow = followAlguien "aramosf"
+
+    binding.pry
+
   end
 
 
@@ -66,23 +70,6 @@ helpers do
   def client
     @client ||= Twitter::Client.new  :oauth_token => session[:token],
                                     :oauth_token_secret => session[:secret]  
-  end
-
-  def getTweeterInfos user_id
-    @info_user = client.user(user_id).to_hash
-  end
-
-  def postToTwitter message
-    @tweetear = client.update(message)
-  end
-
-  def bdd
-    @instance ||= Mongo::Connection.new('localhost', 27017).db('twitter_test')
-  end
-
-  def createCollec
-    @db ||= bdd['tweetcol']
-    #@db = bdd.collection('tweetcol')
   end
 
   def clientStream
@@ -96,13 +83,23 @@ helpers do
       @clientStream ||= TweetStream::Client.new
   end
 
-  def recuperarUserStream
-    @recup ||= clientStream.userstream
+  def bdd
+    @instance ||= Mongo::Connection.new('localhost', 27017).db('twitter_test')
   end
 
-  def trackKeywords keyword
-    @tracking = clientStream.track(keyword)
+  def createCollec
+    @db ||= bdd['tweetcol']
+    #@db = bdd.collection('tweetcol')
   end
+
+  def getTweeterInfos user_id
+    @info_user = client.user(user_id).to_hash
+  end
+
+  def postToTwitter message
+    @tweetear = client.update(message)
+  end
+
 
   def stockListenedStream
     @stream = clientStream
@@ -113,12 +110,17 @@ helpers do
 
   def stockTrackedStream hashTag
     @stream = clientStream
-    @stream.track(hashTag) do |tweets| 
-      @colleccion.insert(tweets.to_hash) 
+    @stream.track(hashTag) do |htagsTweets| 
+      @colleccion.insert(htagsTweets.to_hash) 
     end
   end
 
-
+  def followStreamOfPeople user_id
+    @stream = clientStream
+    @stream.follow(user_id) do |follow|
+      @colleccion.insert(follow.to_hash)
+    end
+  end
 
 end
 
